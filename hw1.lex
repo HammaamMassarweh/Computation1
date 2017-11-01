@@ -20,6 +20,8 @@ comment			"%"
 true			"true"
 false			"false"
 digit   		([0-9])
+octal			([0-7])
+hexa			([0-9a-fA-F])
 letter  		([a-zA-Z])
 null			"null"
 whitespace		([\t\n ])
@@ -39,9 +41,10 @@ whitespace		([\t\n ])
 {false}												showToken("FALSE");
 [+-]{digit}+          								showToken("INTEGER");
 [+-]?({digit}*)\.({digit}*)							showToken("REAL");
-[+-]?({digit}*)\.({digit}*){letter}+				showToken("STRING");
+((\(([^\(\)\\\n](\\\\)*(\\\n)*(\\n)*(\\r)*(\\[0-7][0-7][0-7][a-zA-Z])*(\\t)*(\\b)*(\\f)*(\\\()*(\\\))*)*\))+)|
+((<(([0-9a-fA-F][0-9a-fA-F])*[\t\n ]*)*>)+)			showToken("STRING");
 \/(({digit}*{letter}*)*)							showToken("NAME");
-
+													showToken("STREAM");
 {null}												showToken("NULL");
 
 .		printf("Lex doesn't know what that is!\n");
