@@ -30,22 +30,22 @@ whitespace		([\t\n ])
 
 %%
 
-{obj}												showToken("OBJ");
-{endobj}											showToken("ENDOBJ");
-{lbrace}											showToken("LBRACE");
-{rbrace}											showToken("RBRACE");
-{ldict}												showToken("LDICT");
-{rdict}												showToken("RDICT");
-{comment}(.*)										showToken("COMMENT");
-{true}												showToken("TRUE");
-{false}												showToken("FALSE");
-[+-]{digit}+          								showToken("INTEGER");
-[+-]?({digit}*)\.({digit}*)							showToken("REAL");
-((\(([^\(\)\\\n](\\\\)*(\\\n)*(\\n)*(\\r)*(\\[0-7][0-7][0-7][a-zA-Z])*(\\t)*(\\b)*(\\f)*(\\\()*(\\\))*)*\))+)|
-((<(([0-9a-fA-F][0-9a-fA-F])*[\t\n ]*)*>)+)			showToken("STRING");
-\/(({digit}*{letter}*)*)							showToken("NAME");
-													showToken("STREAM");
-{null}												showToken("NULL");
+{obj}													showToken("OBJ");
+{endobj}												showToken("ENDOBJ");
+{lbrace}												showToken("LBRACE");
+{rbrace}												showToken("RBRACE");
+{ldict}													showToken("LDICT");
+{rdict}													showToken("RDICT");
+{comment}(.*)											showToken("COMMENT");
+{true}													showToken("TRUE");
+{false}													showToken("FALSE");
+[+-]{digit}+          									showToken("INTEGER");
+[+-]?({digit}*)\.({digit}*)								showToken("REAL");
+((\(([^\(\)\\\n](\\\\)*(\\\n)*(\\n)*(\\r)*(\\{octal}{octal}{octal}{letter})*(\\t)*(\\b)*(\\f)*(\\\()*(\\\))*)*\))+)|
+((<(({hexa}{hexa})*[\t\n ]*)*>)+)						showToken("STRING");
+\/(({digit}*{letter}*)*)								showToken("NAME");
+stream\n((\n)*(?!stream|endstream).*(\n)*)*\nendstream	showToken("STREAM");
+{null}													showToken("NULL");
 
 .		printf("Lex doesn't know what that is!\n");
 
