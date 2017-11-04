@@ -7,6 +7,7 @@ void showToken(char *);
 %}
 
 %option yylineno
+%option yytext
 %option noyywrap
 
 obj				"obj"
@@ -51,8 +52,33 @@ stream\n((\n)*(?!stream|endstream).*(\n)*)*\nendstream	showToken("STREAM");
 
 %%
 
+
+
 void showToken(char * name)
 {
-        printf("Lex found a %s, the lexeme is %s and its length is %d\n", name, yytext, yyleng);
+        printf("%d %s %s",yylineno,name,yytext);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
