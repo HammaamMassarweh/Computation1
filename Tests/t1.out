@@ -1,0 +1,33 @@
+1 INTEGER 102
+1 INTEGER 0
+1 OBJ obj
+2 LDICT <<
+2 NAME /Type
+2 NAME /XObject
+2 NAME /Subtype
+2 NAME /Image
+2 NAME /Width
+2 INTEGER 143
+2 NAME /Height
+2 INTEGER 95
+2 NAME /ColorSpace
+2 NAME /DeviceGray
+2 NAME /Matte
+2 LBRACE [
+2 INTEGER 0
+2 INTEGER 0
+2 INTEGER 0
+2 RBRACE ]
+2 NAME /BitsPerComponent
+2 INTEGER 8
+2 NAME /Interpolate
+2 FALSE false
+2 NAME /Filter
+2 NAME /FlateDecode
+2 NAME /Length
+2 INTEGER 321
+2 RDICT >>
+5 STREAM xœíÛÿN‚PÆqÎƒhæ’Ù¬æÒ,i
+6 STRING A string (ascii representation)
+7 ENDOBJ endobj
+7 EOF 

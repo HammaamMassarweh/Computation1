@@ -1,15 +1,14 @@
 %{
 
-/*
-*******************************************************************************************************************
-************************************************ DECLARATION SECTION **********************************************
-*******************************************************************************************************************
-*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #define MAX_LEN 2048
 void showToken(char *);
+void showError();
+char* removeUnprintableChars(char*);
+void removeAll(char *, char *);
+int isUnprintable(char);
 
 %}
 
@@ -31,15 +30,10 @@ hexa			([0-9a-fA-F])
 letter  		([a-zA-Z])
 null			"null"
 whitespace		([\t\n ])
-
-
+stream			"stream"
+endstream		"endstream"
 
 %%
-/*
-*******************************************************************************************************************
-************************************************ RULES SECTION ***************************************************
-*******************************************************************************************************************
-*/
 
 {obj}														showToken("OBJ");
 {endobj}													showToken("ENDOBJ");
@@ -50,36 +44,35 @@ whitespace		([\t\n ])
 {comment}(.*)												showToken("COMMENT");
 {true}														showToken("TRUE");
 {false}														showToken("FALSE");
-[+-]{digit}+          										showToken("INTEGER");
+[+-]?{digit}+          										showToken("INTEGER");
 [+-]?({digit}*)\.({digit}*)									showToken("REAL");
-((\(([^\(\)\\\n](\\\\)*(\\\n)*(\\n)*(\\r)*(\\{octal}{octal}{octal}{letter})*(\\t)*(\\b)*(\\f)*(\\\()*(\\\))*)*\))+)|
-((<(({hexa}{hexa})*[\t\n ]*)*>)+)							showToken("STRING");
+((\(([^\(\)\\\n](\\\\)*(\\\n)*(\\n)*(\\r)*(\\{octal}{octal}{octal}{letter})*(\\t)*(\\b)*(\\f)*(\\\()*(\\\))*)*\))+)|((<(({hexa}{hexa})*[\t\n ]*)*>)+)							showToken("STRING");
 \/(({digit}*{letter}*)*)									showToken("NAME");
-(stream\n((\n)*(?!stream|endstream).*(\n)*)*\nendstream)	showToken("STREAM");
+stream\n((\n)*.*(\n)*)*\nendstream							showToken("STREAM");
 {null}														showToken("NULL");
+{whitespace}												printf("%s", yytext);									
 
-.		printf("Lex doesn't know what that is!\n");
+.															showError();
 
 %%
 
-/*
-*******************************************************************************************************************
-************************************************ C-CODE SECTION ***************************************************
-*******************************************************************************************************************
-*/
+void showError()
+{
+	printf("Error %s\n",yytext);
+	exit(0);
+}
 
 void removeAll(char * str, char * toRemove)
 {
     int i, j, stringLen, toRemoveLen;
     int found;
 
-    stringLen   = strlen(str);      // Length of string
-    toRemoveLen = strlen(toRemove); // Length of word to remove
+    stringLen   = strlen(str);
+    toRemoveLen = strlen(toRemove);
 
 
     for(i=0; i <= stringLen - toRemoveLen; i++)
     {
-        /* Match word with string */
         found = 1;
         for(j=0; j<toRemoveLen; j++)
         {
@@ -90,16 +83,11 @@ void removeAll(char * str, char * toRemove)
             }
         }
 
-        /* If it is not a word */
         if(str[i + j] != ' ' && str[i + j] != '\t' && str[i + j] != '\n' && str[i + j] != '\0') 
         {
             found = 0;
         }
 
-        /*
-         * If word is found then shift all characters to left
-         * and decrement the string length
-         */
         if(found == 1)
         {
             for(j=i; j<=stringLen - toRemoveLen; j++)
@@ -160,8 +148,10 @@ void showToken(char * name)
 		char* revised = removeUnprintableChars(yytext);
 		removeAll(revised,"endstream");
 		removeAll(revised,"stream");
+		printf("%d %s %s",yylineno,name,revised);
+		return;
 	}
-		
+	
     printf("%d %s %s",yylineno,name,yytext);
 }
 

@@ -1,0 +1,19 @@
+(stream\n((\n)*(?!stream|endstream).*(\n)*)*\nendstream)	showToken("STREAM");
+
+
+{stream}\n((\n)*(?!{endstream}).*(\n)*)*\n{endstream}		showToken("STREAM");
+
+
+
+{obj}														showToken("OBJ");
+{endobj}													showToken("ENDOBJ");
+
+	if(strcmp(name,"STREAM") == 0){
+		
+		char* revised = removeUnprintableChars(yytext);
+		removeAll(revised,"endstream");
+		removeAll(revised,"stream");
+	}
+	
+	
+	
