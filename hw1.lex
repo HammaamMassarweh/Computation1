@@ -56,8 +56,7 @@ whitespace		([\t\n ])
 stream\n((\n)*.*(\n)*)*\nendstream							showToken("STREAM");
 {null}														showToken("NULL");
 {whitespace}												printf("%s", yytext);									
-
-.															showError();
+.															printf("ERROR");//showError();
 
 %%
 
@@ -184,7 +183,7 @@ void showToken(char * name)
 		return;
 	}
 	
-    printf("%d %s %s",yylineno,name,yytext);
+    printf("%d %s %s\n",yylineno,name,yytext);
 }
 
 char *substring(char *string, int index, int length)
@@ -258,8 +257,8 @@ void showStringToken(char* name)
 	else
 	{
 		char* newAsciiText = malloc(sizeof(char) * (strlen(newText)));
-		int nextCharAdd = 0;
-		for(int i=0; i< strlen(newText); i++)
+		int i,nextCharAdd = 0;
+		for( i=0; i< strlen(newText); i++)
 		{
 			if( newText[i] == '\\' && (newText[i+1] == '\n' || newText[i+1] == '\n'))
 			{
