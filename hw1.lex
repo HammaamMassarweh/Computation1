@@ -9,18 +9,13 @@ void showToken(char *);
 void showError();
 char* removeUnprintableChars(char*);
 void removeAll(char *, char *);
-<<<<<<< HEAD
-int isUnprintable(char);
 void showStringToken(char*);
 char *substring(char *,int , int);
-=======
-bool isUnprintable(char);
 void printIllegalChar(char ch);
 void handleHexaCase();
 void handleNameTokenCase();
 void handleStringNonHexaCase();
 
->>>>>>> 6f821c5370ac123a3bb2432ec9afcef58be7ce1f
 
 %}
 
@@ -42,8 +37,6 @@ hexa			([0-9a-fA-F])
 letter  		([a-zA-Z])
 null			"null"
 whitespace		([\t\n ])
-stream			"stream"
-endstream		"endstream"
 
 %%
 
@@ -68,11 +61,8 @@ stream\n((\n)*.*(\n)*)*\nendstream							showToken("STREAM");
 
 %%
 
-void showError()
 bool startsWith(const char *pre, const char *str)
 {
-	printf("Error %s\n",yytext);
-	exit(0);
     size_t lenpre = strlen(pre),
            lenstr = strlen(str);
     return lenstr < lenpre ? false : strncmp(pre, str, lenpre) == 0;
@@ -130,8 +120,7 @@ void handleNameTokenCase(){
 void showError(){
 	
 	if(startsWith("<",yytext)){
-		handleHexaCase();
-			
+		handleHexaCase();		
 	}else{
 		if(startsWith("(",yytext)){
 			//HAMMAM please complete this case , it is a STRING token error case(note that I've handled above the hexa case)
@@ -147,19 +136,10 @@ void showError(){
 					handleNameTokenCase();
 				}else{
 					//TO BE CONTINUED WITH THE OTHER CASES
-					
 				}
-				
 			}
-			
-			
-			
-		}
-		
-		
-		
+		}	
 	}
-	
 	exit(0);
 }
 
@@ -169,6 +149,7 @@ bool isUnprintable(char ch){
 	return (dec_val >= 0 && dec_val <= 31);
 	
 }
+
 char* removeUnprintableChars(char* str){
 	
 	int i,j=0,stop = 0;
@@ -199,8 +180,6 @@ void showToken(char * name)
 	if(strcmp(name,"STREAM") == 0){
 		
 		char* revised = removeUnprintableChars(yytext);
-		//removeAll(revised,"endstream");
-		//removeAll(revised,"stream");
 		printf("%d %s %s",yylineno,name,revised);
 		return;
 	}
@@ -228,17 +207,75 @@ char *substring(char *string, int index, int length)
     return array;
 }   
 
-void showStringToken(char* name)
+
+
+unsigned int hexToInt(const char hex)
 {
-	char* noBrackets = malloc(sizeof(char) * (strlen(yytext)-2));
-	noBrackets = substring(yytext, 1, strlen(yytext)-1);
-    printf("%d %s %s",yylineno,name,noBrackets);
+	if (hex > 47 && hex < 58)
+	  return (hex - 48);
+	else if (hex > 64 && hex < 71)
+	  return (hex - 55);
+	else if (hex > 96 && hex < 103)
+	  return (hex - 87);
+}
+
+  int hex_to_ascii(char c, char d)
+{
+	int high = hexToInt(c) * 16;
+	int low = hexToInt(d);
+	return high+low;
+}
+
+char* HandleHexaInput(char* hexaInput)
+{
+	char* hexToText = malloc(sizeof(char) * ((strlen(hexaInput)/2) + 1));
+	int nextCharIndex = 0;
+	int i = 0;
+	for(i = 0; i < strlen(hexaInput); i++){
+		if(hexaInput[i] == '\t' || hexaInput[i] == '\n' || hexaInput[i] == '\r' || hexaInput[i] == ' ')
+			continue;
+		else
+		{
+			hexToText[nextCharIndex] = hex_to_ascii(hexaInput[i],hexaInput[i+1]);
+			i++;
+			nextCharIndex++;
+		}
+    }
+	return hexToText;
 }
 
 
 
-
-
+void showStringToken(char* name)
+{
+	char* newText = malloc(sizeof(char) * (strlen(yytext)-2));
+	newText = substring(yytext, 1, strlen(yytext)-1);
+	if(yytext[0] == '<')
+	{
+		//free(newText);
+		newText = HandleHexaInput(newText);
+	}
+	else
+	{
+		char* newAsciiText = malloc(sizeof(char) * (strlen(newText)));
+		int nextCharAdd = 0;
+		for(int i=0; i< strlen(newText); i++)
+		{
+			if( newText[i] == '\\' && (newText[i+1] == '\n' || newText[i+1] == '\n'))
+			{
+				i++;
+				continue;
+			}
+			
+			newAsciiText[nextCharAdd] = newText[i];
+			nextCharAdd++;
+		}
+		
+		newText = newAsciiText;
+	}
+    printf("%d %s %s",yylineno,name,newText);
+	//free(newText);
+}
 
 
 

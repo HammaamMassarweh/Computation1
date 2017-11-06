@@ -576,16 +576,21 @@ char *yytext;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #define MAX_LEN 2048
 void showToken(char *);
 void showError();
 char* removeUnprintableChars(char*);
 void removeAll(char *, char *);
-int isUnprintable(char);
 void showStringToken(char*);
 char *substring(char *,int , int);
+void printIllegalChar(char ch);
+void handleHexaCase();
+void handleNameTokenCase();
+void handleStringNonHexaCase();
 
-#line 589 "lex.yy.c"
+
+#line 594 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -803,10 +808,10 @@ YY_DECL
 		}
 
 	{
-#line 38 "hw1.lex"
+#line 41 "hw1.lex"
 
 
-#line 810 "lex.yy.c"
+#line 815 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -875,98 +880,98 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 40 "hw1.lex"
+#line 43 "hw1.lex"
 showToken("OBJ");
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 41 "hw1.lex"
+#line 44 "hw1.lex"
 showToken("ENDOBJ");
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 42 "hw1.lex"
+#line 45 "hw1.lex"
 showToken("LBRACE");
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 43 "hw1.lex"
+#line 46 "hw1.lex"
 showToken("RBRACE");
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 44 "hw1.lex"
+#line 47 "hw1.lex"
 showToken("LDICT");
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 45 "hw1.lex"
+#line 48 "hw1.lex"
 showToken("RDICT");
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 46 "hw1.lex"
+#line 49 "hw1.lex"
 showToken("COMMENT");
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 47 "hw1.lex"
+#line 50 "hw1.lex"
 showToken("TRUE");
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 48 "hw1.lex"
+#line 51 "hw1.lex"
 showToken("FALSE");
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 49 "hw1.lex"
+#line 52 "hw1.lex"
 showToken("INTEGER");
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 50 "hw1.lex"
+#line 53 "hw1.lex"
 showToken("REAL");
 	YY_BREAK
 case 12:
 /* rule 12 can match eol */
 YY_RULE_SETUP
-#line 51 "hw1.lex"
+#line 54 "hw1.lex"
 showStringToken("STRING");
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 52 "hw1.lex"
+#line 55 "hw1.lex"
 showToken("NAME");
 	YY_BREAK
 case 14:
 /* rule 14 can match eol */
 YY_RULE_SETUP
-#line 53 "hw1.lex"
+#line 56 "hw1.lex"
 showToken("STREAM");
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 54 "hw1.lex"
+#line 57 "hw1.lex"
 showToken("NULL");
 	YY_BREAK
 case 16:
 /* rule 16 can match eol */
 YY_RULE_SETUP
-#line 55 "hw1.lex"
+#line 58 "hw1.lex"
 printf("%s", yytext);									
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 57 "hw1.lex"
+#line 60 "hw1.lex"
 showError();
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 59 "hw1.lex"
+#line 62 "hw1.lex"
 ECHO;
 	YY_BREAK
-#line 970 "lex.yy.c"
+#line 975 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1979,86 +1984,115 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 59 "hw1.lex"
+#line 62 "hw1.lex"
 
 
 
-void showError()
+bool startsWith(const char *pre, const char *str)
 {
-	printf("Error %s\n",yytext);
+    size_t lenpre = strlen(pre),
+           lenstr = strlen(str);
+    return lenstr < lenpre ? false : strncmp(pre, str, lenpre) == 0;
+}
+
+
+void printIllegalChar(char ch){
+	
+	printf("Error %c\n",ch);
+}
+
+
+void handleHexaCase(){
+	
+	int i = 1;
+		char* hexa = yytext + 1;
+		while(i < yyleng){
+			
+			if((hexa[i] >= 'a' && hexa[i] <= 'f') || (hexa[i] >= 'A' && hexa[i] <= 'F') || (hexa[i] >= '0' && hexa[i] <= '9')){
+				i++;
+			}
+			else{
+				printIllegalChar(hexa[i]);
+				exit(0);
+			}
+				
+		}
+		if(yytext[yyleng - 1] != '>'){
+			printf("Error unclosed string\n");
+		}
+		else{
+			//if the error neither a bad char nor a non-closed string, so it's just an incomplete byte error !
+				printf("Error incomplete byte\n");
+		}
+	
+	
+	
+}
+
+void handleStringNonHexaCase(){
+	
+}
+
+void handleNameTokenCase(){
+	int i;
+	for( i = 1;i<yyleng;i++){
+		if((yytext[i] >= 'a' && yytext[i] <= 'z') || (yytext[i] >= 'A' && yytext[i] <= 'Z') || (yytext[i] >= '0' && yytext[i] <= '9'))
+			continue;
+		else{
+			printIllegalChar(yytext[i]);
+				break;
+		}
+	}
+}
+void showError(){
+	
+	if(startsWith("<",yytext)){
+		handleHexaCase();		
+	}else{
+		if(startsWith("(",yytext)){
+			//HAMMAM please complete this case , it is a STRING token error case(note that I've handled above the hexa case)
+			//here the string may contain a bad char such as an undefined escape sequence or simply the string not enclosed)
+			handleStringNonHexaCase();
+		}
+		else{
+			if(startsWith("stream",yytext)){
+				//simply there's no other error in this case!
+				printf("Error unclosed stream\n");
+			}else{
+				if(startsWith("\/",yytext)){
+					handleNameTokenCase();
+				}else{
+					//TO BE CONTINUED WITH THE OTHER CASES
+				}
+			}
+		}	
+	}
 	exit(0);
 }
 
-void removeAll(char * str, char * toRemove)
-{
-    int i, j, stringLen, toRemoveLen;
-    int found;
-
-    stringLen   = strlen(str);
-    toRemoveLen = strlen(toRemove);
-
-
-    for(i=0; i <= stringLen - toRemoveLen; i++)
-    {
-        found = 1;
-        for(j=0; j<toRemoveLen; j++)
-        {
-            if(str[i + j] != toRemove[j])
-            {
-                found = 0;
-                break;
-            }
-        }
-
-        if(str[i + j] != ' ' && str[i + j] != '\t' && str[i + j] != '\n' && str[i + j] != '\0') 
-        {
-            found = 0;
-        }
-
-        if(found == 1)
-        {
-            for(j=i; j<=stringLen - toRemoveLen; j++)
-            {
-                str[j] = str[j + toRemoveLen];
-            }
-
-            stringLen = stringLen - toRemoveLen;
-        }
-    }
-}
-
-int isUnprintable(char ch){
+bool isUnprintable(char ch){
 	
-	int i;
-	for(i = 1 ; i < 38;i++){
-	    if(ch == "\\" + i)
-			return 1;
-	}
-	
-	return 0;
+	int dec_val = (int)ch;
+	return (dec_val >= 0 && dec_val <= 31);
 	
 }
+
 char* removeUnprintableChars(char* str){
 	
 	int i,j=0,stop = 0;
 	char* revisedStr = malloc(sizeof(MAX_LEN));
-	
-	for(i=0;i<MAX_LEN;i++){
 
-	     if(str[i] == 'e' && str[i+1] == 'n' && str[i+2] == 'd' && str[i+3] == 's' && str[i+4] == 't' && str[i+5] == 'r' && str[i+6] == 'e' && str[i+7] == 'a' && str[i+8] == 'm'){
-			stop = 1;
-	     }
+	for(i=6;i<MAX_LEN;i++){
+
+	     if(str[i] == 'e' && str[i+1] == 'n' && str[i+2] == 'd' && str[i+3] == 's' && str[i+4] == 't' && str[i+5] == 'r' && str[i+6] == 'e' && str[i+7] == 'a' && str[i+8] == 'm')
+			break;
 		 
        	 if(isUnprintable(str[i]))
 			continue;
 	
-	     if(str[i] == '\0'){
-	     	if(stop)
-	     	 break;
-		 
-	     	else
-	     	 continue;
-	     }
+	     if(str[i] == '\0')		// may include this in isUnprintable
+	     	continue;
+	     
 	     revisedStr[j++] = str[i];
 	}
 
@@ -2073,8 +2107,6 @@ void showToken(char * name)
 	if(strcmp(name,"STREAM") == 0){
 		
 		char* revised = removeUnprintableChars(yytext);
-		//removeAll(revised,"endstream");
-		//removeAll(revised,"stream");
 		printf("%d %s %s",yylineno,name,revised);
 		return;
 	}
@@ -2102,17 +2134,75 @@ char *substring(char *string, int index, int length)
     return array;
 }   
 
-void showStringToken(char* name)
+
+
+unsigned int hexToInt(const char hex)
 {
-	char* noBrackets = malloc(sizeof(char) * (strlen(yytext)-2));
-	noBrackets = substring(yytext, 1, strlen(yytext)-1);
-    printf("%d %s %s",yylineno,name,noBrackets);
+	if (hex > 47 && hex < 58)
+	  return (hex - 48);
+	else if (hex > 64 && hex < 71)
+	  return (hex - 55);
+	else if (hex > 96 && hex < 103)
+	  return (hex - 87);
+}
+
+  int hex_to_ascii(char c, char d)
+{
+	int high = hexToInt(c) * 16;
+	int low = hexToInt(d);
+	return high+low;
+}
+
+char* HandleHexaInput(char* hexaInput)
+{
+	char* hexToText = malloc(sizeof(char) * ((strlen(hexaInput)/2) + 1));
+	int nextCharIndex = 0;
+	int i = 0;
+	for(i = 0; i < strlen(hexaInput); i++){
+		if(hexaInput[i] == '\t' || hexaInput[i] == '\n' || hexaInput[i] == '\r' || hexaInput[i] == ' ')
+			continue;
+		else
+		{
+			hexToText[nextCharIndex] = hex_to_ascii(hexaInput[i],hexaInput[i+1]);
+			i++;
+			nextCharIndex++;
+		}
+    }
+	return hexToText;
 }
 
 
 
-
-
+void showStringToken(char* name)
+{
+	char* newText = malloc(sizeof(char) * (strlen(yytext)-2));
+	newText = substring(yytext, 1, strlen(yytext)-1);
+	if(yytext[0] == '<')
+	{
+		//free(newText);
+		newText = HandleHexaInput(newText);
+	}
+	else
+	{
+		char* newAsciiText = malloc(sizeof(char) * (strlen(newText)));
+		int nextCharAdd = 0;
+		for(int i=0; i< strlen(newText); i++)
+		{
+			if( newText[i] == '\\' && (newText[i+1] == '\n' || newText[i+1] == '\n'))
+			{
+				i++;
+				continue;
+			}
+			
+			newAsciiText[nextCharAdd] = newText[i];
+			nextCharAdd++;
+		}
+		
+		newText = newAsciiText;
+	}
+    printf("%d %s %s",yylineno,name,newText);
+	//free(newText);
+}
 
 
 
