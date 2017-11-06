@@ -582,8 +582,10 @@ void showError();
 char* removeUnprintableChars(char*);
 void removeAll(char *, char *);
 int isUnprintable(char);
+void showStringToken(char*);
+char *substring(char *,int , int);
 
-#line 587 "lex.yy.c"
+#line 589 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -801,10 +803,10 @@ YY_DECL
 		}
 
 	{
-#line 36 "hw1.lex"
+#line 38 "hw1.lex"
 
 
-#line 808 "lex.yy.c"
+#line 810 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -873,98 +875,98 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 38 "hw1.lex"
+#line 40 "hw1.lex"
 showToken("OBJ");
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 39 "hw1.lex"
+#line 41 "hw1.lex"
 showToken("ENDOBJ");
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 40 "hw1.lex"
+#line 42 "hw1.lex"
 showToken("LBRACE");
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 41 "hw1.lex"
+#line 43 "hw1.lex"
 showToken("RBRACE");
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 42 "hw1.lex"
+#line 44 "hw1.lex"
 showToken("LDICT");
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 43 "hw1.lex"
+#line 45 "hw1.lex"
 showToken("RDICT");
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 44 "hw1.lex"
+#line 46 "hw1.lex"
 showToken("COMMENT");
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 45 "hw1.lex"
+#line 47 "hw1.lex"
 showToken("TRUE");
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 46 "hw1.lex"
+#line 48 "hw1.lex"
 showToken("FALSE");
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 47 "hw1.lex"
+#line 49 "hw1.lex"
 showToken("INTEGER");
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 48 "hw1.lex"
+#line 50 "hw1.lex"
 showToken("REAL");
 	YY_BREAK
 case 12:
 /* rule 12 can match eol */
 YY_RULE_SETUP
-#line 49 "hw1.lex"
-showToken("STRING");
+#line 51 "hw1.lex"
+showStringToken("STRING");
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 50 "hw1.lex"
+#line 52 "hw1.lex"
 showToken("NAME");
 	YY_BREAK
 case 14:
 /* rule 14 can match eol */
 YY_RULE_SETUP
-#line 51 "hw1.lex"
+#line 53 "hw1.lex"
 showToken("STREAM");
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 52 "hw1.lex"
+#line 54 "hw1.lex"
 showToken("NULL");
 	YY_BREAK
 case 16:
 /* rule 16 can match eol */
 YY_RULE_SETUP
-#line 53 "hw1.lex"
+#line 55 "hw1.lex"
 printf("%s", yytext);									
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 55 "hw1.lex"
+#line 57 "hw1.lex"
 showError();
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 57 "hw1.lex"
+#line 59 "hw1.lex"
 ECHO;
 	YY_BREAK
-#line 968 "lex.yy.c"
+#line 970 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1977,7 +1979,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 57 "hw1.lex"
+#line 59 "hw1.lex"
 
 
 
@@ -2071,8 +2073,8 @@ void showToken(char * name)
 	if(strcmp(name,"STREAM") == 0){
 		
 		char* revised = removeUnprintableChars(yytext);
-		removeAll(revised,"endstream");
-		removeAll(revised,"stream");
+		//removeAll(revised,"endstream");
+		//removeAll(revised,"stream");
 		printf("%d %s %s",yylineno,name,revised);
 		return;
 	}
@@ -2080,9 +2082,32 @@ void showToken(char * name)
     printf("%d %s %s",yylineno,name,yytext);
 }
 
+char *substring(char *string, int index, int length)
+{
+    int counter = length - index;
 
+    printf("\n%d\n", counter);
+    char* array = malloc(sizeof(char) * counter);
+    if(array != NULL)
+    {
+        int i = index;
+		while(i < length)
+		{
+			array[i - index] = string[i];
+			i++;
+		}
+    }
+    else
+        puts("Dynamic allocations failed\n");
+    return array;
+}   
 
-
+void showStringToken(char* name)
+{
+	char* noBrackets = malloc(sizeof(char) * (strlen(yytext)-2));
+	noBrackets = substring(yytext, 1, strlen(yytext)-1);
+    printf("%d %s %s",yylineno,name,noBrackets);
+}
 
 
 

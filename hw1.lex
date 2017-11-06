@@ -9,6 +9,8 @@ void showError();
 char* removeUnprintableChars(char*);
 void removeAll(char *, char *);
 int isUnprintable(char);
+void showStringToken(char*);
+char *substring(char *,int , int);
 
 %}
 
@@ -46,7 +48,7 @@ endstream		"endstream"
 {false}														showToken("FALSE");
 [+-]?{digit}+          										showToken("INTEGER");
 [+-]?({digit}*)\.({digit}*)									showToken("REAL");
-((\(([^\(\)\\\n](\\\\)*(\\\n)*(\\n)*(\\r)*(\\{octal}{octal}{octal}{letter})*(\\t)*(\\b)*(\\f)*(\\\()*(\\\))*)*\))+)|((<(({hexa}{hexa})*[\t\n ]*)*>)+)							showToken("STRING");
+((\(([^\(\)\\\n](\\\\)*(\\\n)*(\\n)*(\\r)*(\\{octal}{octal}{octal}{letter})*(\\t)*(\\b)*(\\f)*(\\\()*(\\\))*)*\))+)|((<(({hexa}{hexa})*[\t\n ]*)*>)+)							showStringToken("STRING");
 \/(({digit}*{letter}*)*)									showToken("NAME");
 stream\n((\n)*.*(\n)*)*\nendstream							showToken("STREAM");
 {null}														showToken("NULL");
@@ -146,8 +148,8 @@ void showToken(char * name)
 	if(strcmp(name,"STREAM") == 0){
 		
 		char* revised = removeUnprintableChars(yytext);
-		removeAll(revised,"endstream");
-		removeAll(revised,"stream");
+		//removeAll(revised,"endstream");
+		//removeAll(revised,"stream");
 		printf("%d %s %s",yylineno,name,revised);
 		return;
 	}
@@ -155,9 +157,32 @@ void showToken(char * name)
     printf("%d %s %s",yylineno,name,yytext);
 }
 
+char *substring(char *string, int index, int length)
+{
+    int counter = length - index;
 
+    printf("\n%d\n", counter);
+    char* array = malloc(sizeof(char) * counter);
+    if(array != NULL)
+    {
+        int i = index;
+		while(i < length)
+		{
+			array[i - index] = string[i];
+			i++;
+		}
+    }
+    else
+        puts("Dynamic allocations failed\n");
+    return array;
+}   
 
-
+void showStringToken(char* name)
+{
+	char* noBrackets = malloc(sizeof(char) * (strlen(yytext)-2));
+	noBrackets = substring(yytext, 1, strlen(yytext)-1);
+    printf("%d %s %s",yylineno,name,noBrackets);
+}
 
 
 
