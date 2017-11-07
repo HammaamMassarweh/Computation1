@@ -7,6 +7,7 @@
 #define MAX_LEN 2048
 void showToken(char *);
 void showError();
+void saveText();
 char* removeUnprintableChars(char*);
 void removeAll(char *, char *);
 void showStringToken(char*);
@@ -21,6 +22,7 @@ void handleStringNonHexaCase();
 
 %option yylineno
 %option noyywrap
+%x ENDSTREAM 
 
 obj				"obj"
 endobj			"endobj"
@@ -37,7 +39,6 @@ hexa			([0-9a-fA-F])
 letter  		([a-zA-Z])
 null			"null"
 whitespace		([\t\n ])
-
 %%
 
 {obj}														showToken("OBJ");
@@ -53,12 +54,17 @@ whitespace		([\t\n ])
 [+-]?({digit}*)\.({digit}*)									showToken("REAL");
 ((\(([^\(\)\\\n](\\\\)*(\\\n)*(\\n)*(\\r)*(\\{octal}{octal}{octal}{letter})*(\\t)*(\\b)*(\\f)*(\\\()*(\\\))*)*\))+)|((<(({hexa}{hexa})*[\t\n ]*)*>)+)							showStringToken("STRING");
 \/(({digit}*{letter}*)*)									showToken("NAME");
-stream\n((\n)*.*(\n)*)*\nendstream							showToken("STREAM");
+stream BEGIN(ENDSTREAM);
+<ENDSTREAM>(.)|([\n\r])										saveText();
+<ENDSTREAM>([\n])endstream 									{showToken("STREAM"); BEGIN(INITIAL);}
 {null}														showToken("NULL");
 {whitespace}												printf("%s", yytext);									
 .															printf("ERROR");//showError();
 
 %%
+
+char text[MAX_LEN];
+int text_index = 0;
 
 bool startsWith(const char *pre, const char *str)
 {
@@ -148,7 +154,7 @@ bool isUnprintable(char ch){
 	return (dec_val >= 0 && dec_val <= 31);
 	
 }
-
+/*
 char* removeUnprintableChars(char* str){
 	
 	int i,j=0,stop = 0;
@@ -172,18 +178,25 @@ char* removeUnprintableChars(char* str){
 
 	return revisedStr;
 }
-
+*/
+void saveText(){
+	
+	text[text_index++] = *yytext;
+	text[text_index] = '\0';
+}
 
 void showToken(char * name)
 {
 	if(strcmp(name,"STREAM") == 0){
 		
-		char* revised = removeUnprintableChars(yytext);
-		printf("%d %s %s",yylineno,name,revised);
-		return;
-	}
+		//char* revised = removeUnprintableChars(yytext);
 	
-    printf("%d %s %s\n",yylineno,name,yytext);
+		printf("%d %s %s\n",yylineno,name,text+2);
+		text_index = 0;
+	}
+	else{
+		printf("%d %s %s\n",yylineno,name,yytext);
+	}
 }
 
 char *substring(char *string, int index, int length)
