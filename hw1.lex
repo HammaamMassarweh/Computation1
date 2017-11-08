@@ -78,10 +78,10 @@ whitespace		([\t\n\r ])
 [+-]?({digit}*)\.({digit}*)									showToken("REAL");
 \/(({digit}*{letter}*)*)									showToken("NAME");
 
-stream[\n\r] BEGIN(ENDSTREAM);
+(stream[\r\n])|(stream[\n][\r]) BEGIN(ENDSTREAM);
 <ENDSTREAM>((.)|{whitespace})										saveText();
 <ENDSTREAM>'(0)'														;
-<ENDSTREAM>([\n\r])endstream 									{showToken("STREAM"); BEGIN(INITIAL);}
+<ENDSTREAM>(([\r][\n])|([\n\r]))endstream 									{showToken("STREAM"); BEGIN(INITIAL);}
 <ENDSTREAM><<EOF>>											{printf("Error unclosed stream\n");exit(0);}
 
 {null}														showToken("NULL");
@@ -146,15 +146,15 @@ void printStringTokenLine(){
 	printf("%d STRING %s\n",yylineno,string_text);
 	string_text[0] = '\0';
 	string_text_len = 0;
-	
-	
 }
 
 void saveStringText(){
 	//printf("In: %s\n",yytext);
 	char* newText = yytext;
 	int i,nextCharAdd = 0;
-	for( i=0; i< strlen(newText); i++)
+	int size = strlen(newText);
+	
+	for( i=0; i< size; i++)
 	{
 		if( newText[i] == '\\')
 		{
@@ -189,11 +189,11 @@ void saveStringText(){
 					i++;
 					continue;
 				case ')':
-					string_text[nextCharAdd++] = '\)';
+					string_text[nextCharAdd++] = ')';
 					i++;
 					continue;
 				case '(':
-					string_text[nextCharAdd++] = '\(';
+					string_text[nextCharAdd++] = '(';
 					i++;
 					continue;
 				default :
@@ -212,7 +212,12 @@ void saveStringText(){
 			continue;
 		}
 		
-		if(newText[i] == '\n'){
+		if(newText[i] == ')'){
+			//string_text[nextCharAdd++] = newText[i];
+			break;
+		}
+		
+		if(newText[i] == '\n' || newText[i] == '\r'){
 			printIllegalChar('\n');
 			exit(0);
 		}
