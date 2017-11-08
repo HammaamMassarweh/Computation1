@@ -46,7 +46,7 @@ hexa			([0-9a-fA-F])
 letter  		([a-zA-Z])
 
 null			"null"
-whitespace		([\t\n ]|(\r\n))
+whitespace		([\t\n\r ]|(\r\n))
 %%
 
 
@@ -74,13 +74,13 @@ whitespace		([\t\n ]|(\r\n))
 \/(({digit}*{letter}*)*)									showToken("NAME");
 
 stream BEGIN(ENDSTREAM);
-<ENDSTREAM>(.)|([\n\r])										saveText();
+<ENDSTREAM>(.)|([\r\n])										saveText();
 <ENDSTREAM>([\n])endstream 									{showToken("STREAM"); BEGIN(INITIAL);}
 
 {null}														showToken("NULL");
-{whitespace}												printf("%s", yytext);
+{whitespace}												;//printf("%s", yytext);
 
-
+<<EOF>>														showToken("EOF");
 .															showError();//printf("ERROR");
 
 %%
@@ -89,6 +89,7 @@ char text[MAX_LEN];
 int text_index = 0;
 
 char string_text[MAX_LEN];
+int string_text_len = 0;
 
 int powerr(int b,int f)
 {
@@ -119,7 +120,7 @@ long long convertOctalToDecimal(int octalNumber)
 }
 
 void printStringTokenLine(){
-	printf("%d STRING %s",yylineno,string_text);
+	printf("%d STRING %s\n",yylineno,string_text);
 }
 
 void saveStringText(){
@@ -179,12 +180,11 @@ void saveStringText(){
 			continue;
 		}
 				
-		string_text[nextCharAdd] = newText[i];
-		nextCharAdd++;
+		string_text[nextCharAdd++] = newText[i];
 	}
 	
 	string_text[nextCharAdd] = '\0';
-	nextCharAdd++;
+	string_text_len = nextCharAdd;
 	//strcpy(string_text,yytext);
 	//printf("++++++++++++++++++++++++++++++\n");
 	//printf("%s\n",yytext);
@@ -232,6 +232,7 @@ void showError(){
 				handleNameTokenCase();
 			}else{
 				//TO BE CONTINUED WITH THE OTHER CASES
+				printIllegalChar(yytext[0]);
 			}
 		}
 	}
@@ -279,13 +280,21 @@ void showToken(char * name)
 	if(strcmp(name,"STREAM") == 0){
 		
 		//char * revisedStr = removeUnprintableChars();
-		printf("%d %s %s\n",yylineno,name,text+2);
+		printf("%d STREAM ",yylineno);
+		int i;
+		for(i = 2 ; i < text_index;i++){
+			printf("%c",text[i]);
+		}
 		text_index = 0;
+		printf("\n");
 
 	}
 	else{
 		printf("%d %s %s\n",yylineno,name,yytext);
 	}
+	
+	if(strcmp(name,"EOF") == 0)
+	   exit(0);
 }
 
 char *substring(char *string, int index, int length)
@@ -352,7 +361,7 @@ bool unclosedString(char* str,int len){
 char* HandleHexaInput(char* hexaInput)
 {
 		
-	char* revisedStr = malloc(sizeof(hexaInput));
+	char* revisedStr = malloc(sizeof(string_text));
 	deleteWhiteSpaces(hexaInput,revisedStr);
 	
 	if(notHexaText(revisedStr)){
@@ -364,22 +373,17 @@ char* HandleHexaInput(char* hexaInput)
 		return NULL;
 	}
 
-	printf("----------------\n");
-	printf("%s\n",revisedStr);
-	printf("----------------\n");
+	//printf("----------------\n");
+	//printf("I got a -=>   %s\n",revisedStr);
+	//printf("----------------\n");
 	
-	char* hexToText = malloc(sizeof(char) * ((strlen(revisedStr)) + 1));
-	int nextCharIndex = 0;
-	int i = 0;
-	for(i = 0; i < strlen(revisedStr); i++){
-		if(revisedStr[i] == '\t' || revisedStr[i] == '\n' || revisedStr[i] == '\r' || revisedStr[i] == ' ')
-			continue;
-		else
-		{
-			hexToText[nextCharIndex] = hex_to_ascii(revisedStr[i],revisedStr[i+1]);
-			i++;
-			nextCharIndex++;
-		}
+	char* hexToText = malloc(MAX_LEN);
+	int i,nextCharIndex = 0;
+	for(i = 0; i < string_text_len ; i+=2){
+		
+			char asciiChar = hex_to_ascii(revisedStr[i],revisedStr[i+1]);
+			hexToText[nextCharIndex++] = asciiChar;
+		
     }
 	hexToText[nextCharIndex] = '\0';
 	nextCharIndex++;
@@ -412,9 +416,12 @@ void showStringToken(char* name)
 	//printf("----------------\n");
 	char* newText = string_text;
 	
-		newText = HandleHexaInput(string_text);
-		if(newText == NULL)
-			exit(0);
+	newText = HandleHexaInput(string_text);
+	if(newText == NULL)
+		exit(0);
+	
+	printf("%d %s %s\n",yylineno,name,newText);
+
 
 	//else
 	//{
@@ -435,7 +442,6 @@ void showStringToken(char* name)
 	//	
 	//	newText = newAsciiText;
 	//}
-    printf("%d %s %s\n",yylineno,name,newText);
 	//free(newText);
 	
 }
